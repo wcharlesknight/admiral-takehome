@@ -1,6 +1,6 @@
 import React from "react";
 import { render, screen } from "@testing-library/react";
-import { Home } from "./Home";
+import { Home } from "../pages/Home";
 import { Route, Routes } from "react-router-dom";
 import userEvent from "@testing-library/user-event";
 import { getTestRouter, ThemeWrapper } from "../testutils";

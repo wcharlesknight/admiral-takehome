@@ -10,7 +10,7 @@ import {
   AlertTitle,
 } from "@chakra-ui/react";
 import { useContext } from "react";
-import { AuthContext } from "../App";
+import { AuthContext } from "../context/AuthContext";
 
 export function Signin() {
   const { authorize } = useContext(AuthContext);

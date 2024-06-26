@@ -1,17 +1,15 @@
 import React from "react";
 import { render, screen, waitFor, waitForElementToBeRemoved } from "@testing-library/react";
-import {
-  CompanyStep,
-  OnboardingContext,
-  OnboardingFields,
-  ShareholderGrantsStep,
-  ShareholdersStep,
-  signupReducer,
-  UserStep,
-} from "./Onboarding";
 import { Navigate, Route, Routes } from "react-router-dom";
 import userEvent from "@testing-library/user-event";
 import { getTestRouter, ThemeWrapper } from "../testutils";
+import { OnboardingContext } from "../context/OnboardingContext";
+import { OnboardingFields } from "../types";
+import { UserStep } from "../components/UserStep";
+import { CompanyStep } from "../components/CompanyStep";
+import { ShareholdersStep } from "../components/ShareholdersStep";
+import { ShareholderGrantsStep } from "../components/ShareholderGrantsStep";
+import { signupReducer } from "../reducers/SignupReducer";
 
 const defaultOnboardingState = {
   userName: "",
@@ -27,7 +25,6 @@ const Page = ({
   initialState?: OnboardingFields;
 }) => {
   const [state, dispatch] = React.useReducer(signupReducer, initialState);
-
   return (
     <OnboardingContext.Provider
       value={{
@@ -55,6 +52,22 @@ const Page = ({
 };
 
 describe("Onboarding", () => {
+  it("should not move to next field if inputs are missing", async () => {
+    const Router = getTestRouter("/");
+    render(
+      <Router>
+        <Page />
+      </Router>,
+      { wrapper: ThemeWrapper }
+    );
+
+    const nameField = screen.getByRole("textbox", { name: /who is setting/ });
+    
+    const nextButton = screen.getByRole("button", { name: "Next" });
+    await userEvent.click(nextButton);
+    expect(nameField).toBeInTheDocument();
+  });
+
   it("should allow configuring user details", async () => {
     const Router = getTestRouter("/");
     render(
@@ -77,6 +90,24 @@ describe("Onboarding", () => {
     const nextButton = screen.getByRole("button", { name: "Next" });
     await userEvent.click(nextButton);
     expect(nameField).not.toBeInTheDocument();
+  });
+
+  it("should not move to next page if company input is missing", async () => {
+    const Router = getTestRouter("/company");
+    render(
+      <Router>
+        <Page />
+      </Router>,
+      { wrapper: ThemeWrapper }
+    );
+
+    const companyNameField = screen.getByRole("textbox", {
+      name: /company are we/,
+    });
+    
+    const nextButton = screen.getByRole("button", { name: "Next" });
+    await userEvent.click(nextButton);
+    expect(companyNameField).toBeInTheDocument();
   });
 
   it("should allow configuring company", async () => {
@@ -241,8 +272,9 @@ describe("Onboarding", () => {
     await userEvent.click(grantNameInput);
     await userEvent.paste("Series A Purchase");
     await userEvent.click(grantAmountInput);
-    // Something is wrong with this input *hint*
-    // userEvent.paste(grantAmountInput, '800')
+    await userEvent.paste('800')
+    // Test for correct radix
+    expect(grantAmountInput).toHaveValue("800");
     await userEvent.click(grantNameInput);
     await userEvent.paste("12/12/2020");
 
@@ -251,7 +283,8 @@ describe("Onboarding", () => {
     const textIndicator = screen.getByText(/What grants does/);
     expect(textIndicator).toBeInTheDocument();
     await userEvent.click(nextButton);
-    expect(textIndicator).not.toBeInTheDocument();
+    let dashboardPie = screen.getByText(/By Investor/);
+    expect(dashboardPie).toBeInTheDocument();
   }, 10000);
 
   it.todo("should persist onboard config");

@@ -103,6 +103,7 @@ export function getHandlers(
     ),
 
     rest.post<User>("/user/new", (req, res, ctx) => {
+      console.log("im in here")
       const { email, name } = req.body;
       if (!!users[email]) {
         console.warn("User already exists");

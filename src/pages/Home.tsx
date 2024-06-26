@@ -6,7 +6,7 @@ import { ReactComponent as HoldDoc } from "../assets/hold-doc.svg";
 export function Home() {
   return (
     <Stack direction="column" alignItems="center" spacing="10">
-      <HoldDoc width="50%" height="auto" />
+      <HoldDoc width="50%" height="100%" />
       <Heading
         size="4xl"
         bgGradient="linear(to-br, teal.400, teal.100)"

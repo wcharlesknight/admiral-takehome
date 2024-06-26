@@ -1,0 +1,11 @@
+- Upon opening the application and analyzing the console we see one warning to use createRoot because we're on React 18 and one error about the <svg> attribute height expected to be "auto". Changed from "auto" to "100%" to match pattern in Home.tsx svg reference. 
+- In App.tsx a ts error is shown "Expression produces a union type that is too complex to represent." This is telling us the structure could be simplified. After investigating further it seemed like noise and needed to make a new setting in settings.json for this project. 
+- The README states to use yarn and we have a package-lock, we can get rid of this as to follow the README properly. 
+- There is a UI bug on dashboard/investor that needed to be fixed and the data for the pie chart was backwards in relation to the tab. 
+- Improper folder structure, Onboarding was overly bloated and no separation of context/components/reducers.
+- A name and email should be required and button should be disabled. 
+- A company name could be entered empty, the disabled function on the Button would not work, passing the wrong props.
+- The add grants modal does not allow shares to be added, incorrect radix used (3). 
+- A bug when adding a new shareholder during onboarding, the data does not save properly at the last step. This is due to a bad route change which unmounts Onboarding context provider.
+- I also moved Onboarding context provider further up the component tree so data was properly saved as the Dashboard component wasn't wrapped in it.  
+- UI bug on dashboard not showing names and labels properly, added padding accordingly.

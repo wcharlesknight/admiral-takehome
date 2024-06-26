@@ -6,7 +6,7 @@ import {
   within,
 } from "@testing-library/react";
 import { getTestRouter, server, ThemeWrapper } from "../testutils";
-import { Dashboard } from "./Dashboard";
+import { Dashboard } from "../pages/Dashboard";
 import { Route, Routes } from "react-router";
 import { getHandlers } from "../handlers";
 import userEvent from "@testing-library/user-event";

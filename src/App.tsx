@@ -4,20 +4,14 @@ import { Route, Routes, Navigate } from "react-router-dom";
 import { Container } from "@chakra-ui/react";
 import { User } from "./types";
 import { Home } from "./pages/Home";
-import { Start } from "./pages/Onboarding";
+import { Onboarding } from "./pages/Onboarding";
 import { Dashboard } from "./pages/Dashboard";
 import { Signin } from "./pages/Signin";
 import { ShareholderPage } from "./pages/Shareholder";
+import { AuthContext } from "./context/AuthContext";
+import { signupReducer } from "./reducers/SignupReducer";
+import { OnboardingContext } from "./context/OnboardingContext";
 
-export const AuthContext = React.createContext<{
-  user: User | undefined;
-  authorize: (user: User) => void;
-  deauthroize: () => void;
-}>({
-  user: undefined,
-  authorize: () => {},
-  deauthroize: () => {},
-});
 
 function App() {
   const [user, setUser] = React.useState<User | undefined>(() => {
@@ -33,7 +27,13 @@ function App() {
       localStorage.setItem("session", JSON.stringify(user));
     }
   }, [user]);
-
+  const [state, dispatch] = React.useReducer(signupReducer, {
+    userName: "",
+    email:  "",
+    companyName: "",
+    shareholders:  {},
+    grants:  {},
+  });
   return (
     <AuthContext.Provider
       value={{
@@ -42,6 +42,7 @@ function App() {
         deauthroize: () => setUser(undefined),
       }}
     >
+      <OnboardingContext.Provider value={{ ...state, dispatch }}> 
       <Container paddingTop="16" paddingBottom="16">
         <Routes>
           {user ? (
@@ -60,13 +61,14 @@ function App() {
           ) : (
             <>
               <Route path="/" element={<Home />} />
-              <Route path="/start/*" element={<Start />} />
+              <Route path="/start/*" element={<Onboarding />} />
               <Route path="/signin" element={<Signin />} />
               <Route path="/*" element={<Navigate to="/" />} />
             </>
           )}
         </Routes>
       </Container>
+      </OnboardingContext.Provider>
     </AuthContext.Provider>
   );
 }

@@ -90,7 +90,7 @@ export function Dashboard() {
       </Alert>
     );
   }
-
+  console.log(shareholder.data, grant.data, " s d")
   // TODO: why are these inline?
   function getGroupData() {
     if (!shareholder.data || !grant.data) {
@@ -158,8 +158,11 @@ export function Dashboard() {
         </Stack>
       </Stack>
       <VictoryPie
+        data-testid="pie-chart"
         colorScale="blue"
-        data={mode === "investor" ? getGroupData() : getInvestorData()}
+        padding={{ top: 80, bottom: 80, left: 80, right: 80 }}
+        data={mode === "investor" ?  getInvestorData() : getGroupData()}
+        labels={({ datum }) => datum.y ? `${datum.x}` : ""}
       />
       <Stack divider={<StackDivider />}>
         <Heading>Shareholders</Heading>

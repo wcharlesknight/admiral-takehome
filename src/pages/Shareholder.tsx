@@ -20,6 +20,7 @@ import {
   AlertTitle,
   AlertIcon,
   TableCaption,
+  Select,
 } from "@chakra-ui/react";
 import { ReactComponent as Avatar } from "../assets/avatar-male.svg";
 import { Company, Grant, Shareholder } from "../types";
@@ -42,7 +43,7 @@ export function ShareholderPage() {
   const companyQuery = useQuery<Company>("company", () =>
     fetch("/company").then((e) => e.json())
   );
-
+  console.log("im in Shareholder page")
   const [draftGrant, setDraftGrant] = React.useState<Omit<Grant, "id">>({
     name: "",
     amount: 0,
@@ -218,6 +219,21 @@ export function ShareholderPage() {
                   }))
                 }
               />
+            </FormControl>
+            <FormControl>
+            <Select
+    variant="filled" // Specify the variant you want here
+    placeholder="Select option"
+    data-testid="select-option"
+    onChange={(e) => {
+      // Handle the change
+      console.log(e.target.value);
+    }}
+  >
+    <option value="option1">Option 1</option>
+    <option value="option2">Option 2</option>
+    <option value="option3">Option 3</option>
+  </Select>
             </FormControl>
             <FormControl>
               <Input
