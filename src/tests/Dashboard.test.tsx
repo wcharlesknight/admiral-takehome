@@ -391,8 +391,8 @@ describe("Dashboard", () => {
       { wrapper: ThemeWrapper }
     );
 
-    const chart = await screen.findByTestId("common-value");
-    expect(within(chart).getByText(/100/)).toBeInTheDocument();
+    const commonValue = await screen.findByTestId("common-value");
+    expect(within(commonValue).getByText(/100/)).toBeInTheDocument();
   });
 
   it("should change common and preferred value from new input", async () => {
