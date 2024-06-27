@@ -24,10 +24,7 @@ import produce from "immer";
 
 type Props = { grantData: Query<Grant>; shareholderData: Query<Shareholder> };
 
-export function ShareholderTable({
-  grantData: grant,
-  shareholderData: shareholder,
-}: Props) {
+export function ShareholderTable({ grantData, shareholderData }: Props) {
   const queryClient = useQueryClient();
   const [newShareholder, setNewShareholder] = React.useState<
     Omit<Shareholder, "id" | "grants">
@@ -96,7 +93,7 @@ export function ShareholderTable({
               </Tr>
             </Thead>
             <Tbody>
-              {Object.values(shareholder).map((s) => (
+              {Object.values(shareholderData).map((s) => (
                 <Tr key={s.id}>
                   <Td>
                     <Link to={`/shareholder/${s.id}`}>
@@ -108,23 +105,32 @@ export function ShareholderTable({
                   </Td>
                   <Td data-testid={`shareholder-${s.name}-group`}>{s.group}</Td>
                   <Td data-testid={`shareholder-${s.name}-common-grants`}>
-                    {s.grants.filter((g) => grant[g].type === "common").length}
+                    {
+                      s.grants.filter((g) => grantData[g].type === "common")
+                        .length
+                    }
                   </Td>
                   <Td data-testid={`shareholder-${s.name}-common`}>
                     {s.grants
-                      .filter((g) => grant[g].type === "common")
-                      .reduce((acc, grantID) => acc + grant[grantID].amount, 0)}
+                      .filter((g) => grantData[g].type === "common")
+                      .reduce(
+                        (acc, grantID) => acc + grantData[grantID].amount,
+                        0
+                      )}
                   </Td>
                   <Td data-testid={`shareholder-${s.name}-preferred-grants`}>
                     {
-                      s.grants.filter((g) => grant[g].type === "preferred")
+                      s.grants.filter((g) => grantData[g].type === "preferred")
                         .length
                     }
                   </Td>
                   <Td data-testid={`shareholder-${s.name}-preferred`}>
                     {s.grants
-                      .filter((g) => grant[g].type === "preferred")
-                      .reduce((acc, grantID) => acc + grant[grantID].amount, 0)}
+                      .filter((g) => grantData[g].type === "preferred")
+                      .reduce(
+                        (acc, grantID) => acc + grantData[grantID].amount,
+                        0
+                      )}
                   </Td>
                 </Tr>
               ))}

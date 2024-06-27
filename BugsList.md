@@ -22,6 +22,7 @@ Bugs:
 Considerations:
 
 - email format validation - usually done on backend i.e. some sort of regex or library.
-- separate Shareholder and Dashboard components - probably warranted but kept as is.
+- separate Shareholder out component - probably warranted but kept as is.
 - no signout button? Was able to confirm signed in worked with manually deleting session and using tests.
 - Probaby could've cut down on calls when switching between pages. Use of localStorage as caching could've been possible, probabyl overkill for most situations but a heavy trafficked site it could make all the difference.
+- The massive backend call on the DoneStep.tsx within the useEffect is a little dangerous and was exposed with react strict mode, it could probably be done with a button press as opposed to a mount. Although it isn't necessarily an anti-pattern so I kept as is.

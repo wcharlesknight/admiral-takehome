@@ -17,9 +17,9 @@ import { ShareholderTable } from "../components/dashboard/ShareholderTable";
 
 export function Dashboard() {
   const { mode, view } = useParams();
-  // These are caught down below if there is an error
   const SHAREHOLDER_GROUPS = ["investor", "founder", "employee"];
   const SHARE_TYPES = ["common", "preferred"];
+  // These are caught down below if there is an error
   const grant = useQuery<Query<Grant>, string>("grants", () =>
     fetch("/grants").then((e) => e.json())
   );
@@ -162,7 +162,7 @@ export function Dashboard() {
           </Button>
         </Stack>
       </Stack>
-      <MarketCap grantData={grant.data} value={value.data} />
+      <MarketCap grantData={grant.data} valueData={value.data} />
       <Stack direction="row" justifyContent="center">
         <Button
           colorScheme="teal"

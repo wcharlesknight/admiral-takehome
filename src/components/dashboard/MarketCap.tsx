@@ -1,15 +1,15 @@
 import React, { useCallback } from "react";
 import { Text, Stack, Button, Input } from "@chakra-ui/react";
-import { CompanyValue, Grant } from "../../types";
+import { CompanyValue, Grant, Query } from "../../types";
 import { useMutation, useQueryClient } from "react-query";
 import produce from "immer";
 
 type Props = {
-  grantData: { [dataID: number]: Grant };
-  value: CompanyValue | undefined;
+  grantData: Query<Grant>;
+  valueData: CompanyValue | undefined;
 };
 
-export function MarketCap({ grantData: grant, value }: Props) {
+export function MarketCap({ grantData, valueData }: Props) {
   const [newCommonValue, setNewCommonValue] = React.useState<string>("");
   const [newPreferredValue, setNewPreferredValue] = React.useState<string>("");
   const queryClient = useQueryClient();
@@ -49,16 +49,16 @@ export function MarketCap({ grantData: grant, value }: Props) {
     }
   );
 
-  const commonShareValue = Object.values(grant).reduce((acc, s) => {
-    if (s.type === "common" && value?.commonValue) {
-      acc += s.amount * value?.commonValue;
+  const commonShareValue = Object.values(grantData).reduce((acc, s) => {
+    if (s.type === "common" && valueData?.commonValue) {
+      acc += s.amount * valueData?.commonValue;
     }
     return acc;
   }, 0);
 
-  const preferredShareValue = Object.values(grant).reduce((acc, s) => {
-    if (s.type === "preferred" && value?.preferredValue) {
-      acc += s.amount * value?.preferredValue;
+  const preferredShareValue = Object.values(grantData).reduce((acc, s) => {
+    if (s.type === "preferred" && valueData?.preferredValue) {
+      acc += s.amount * valueData?.preferredValue;
     }
     return acc;
   }, 0);
@@ -124,7 +124,7 @@ export function MarketCap({ grantData: grant, value }: Props) {
         </Text>
         <Text>Value: ${`${commonShareValue.toLocaleString()}`}</Text>
         <Text data-testid="common-value">
-          Per Share: ${`${value?.commonValue}`}
+          Per Share: ${`${valueData?.commonValue}`}
         </Text>
       </Stack>
       <Stack
@@ -152,7 +152,7 @@ export function MarketCap({ grantData: grant, value }: Props) {
         </Text>
         <Text>Value: ${`${preferredShareValue.toLocaleString()}`}</Text>
         <Text data-testid="preferred-value">
-          Per Share: ${`${value?.preferredValue}`}
+          Per Share: ${`${valueData?.preferredValue}`}
         </Text>
       </Stack>
       <Text padding={2} color="teal" fontWeight="bold">
