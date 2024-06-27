@@ -8,9 +8,14 @@ export interface Company {
   name: string;
 }
 
-export type ID<T> = {
-  [id: number]: T
+export interface CompanyValue {
+  preferredValue: number;
+  commonValue: number;
 }
+
+export type Query<T> = {
+  [id: number]: T;
+};
 
 export interface Grant {
   id: number;
@@ -25,7 +30,7 @@ export interface Shareholder {
   // TODO: allow inviting/creating user account for orphan shareholders
   email?: string;
   grants: number[];
-  group: ShareholderGroup
+  group: ShareholderGroup;
 }
 
 export type ShareholderGroup = "employee" | "founder" | "investor";

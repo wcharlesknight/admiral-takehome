@@ -1,7 +1,5 @@
-import React from "react";
-import {
-  Link,
-} from "react-router-dom";
+import React, { useCallback } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import {
   Text,
   Stack,
@@ -15,27 +13,37 @@ import {
   Badge,
 } from "@chakra-ui/react";
 import { useContext } from "react";
-import {  Shareholder, ShareholderGroup} from "../types";
+import { Shareholder, ShareholderGroup } from "../types";
 import { OnboardingContext } from "../context/OnboardingContext";
 
 export function ShareholdersStep() {
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const navigate = useNavigate();
   const { shareholders, companyName, dispatch } = useContext(OnboardingContext);
   const [newShareholder, setNewShareholder] = React.useState<
     Omit<Shareholder, "id" | "grants">
   >({ name: "", group: "employee" });
-  console.log(shareholders, "shareholders")
-  function submitNewShareholder(e: React.FormEvent) {
-    e.preventDefault();
-    dispatch({ type: "addShareholder", payload: newShareholder });
-    setNewShareholder({ name: "", group: "employee" });
-    onClose();
-  }
+
+  const submitNewShareholder = useCallback(
+    (e: React.FormEvent) => {
+      e.preventDefault();
+      dispatch({ type: "addShareholder", payload: newShareholder });
+      setNewShareholder({ name: "", group: "employee" });
+      onClose();
+    },
+    [newShareholder, dispatch, onClose]
+  );
+
+  React.useEffect(() => {
+    if (!companyName) {
+      navigate("../company");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <Stack>
       <Text color="teal.400">
-        {/* TODO: redirect to previous step if company name isn't there*/}
         Who are <strong>{companyName}</strong>'s shareholders?
       </Text>
       <Stack divider={<StackDivider borderColor="teal-200" />}>

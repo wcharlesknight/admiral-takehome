@@ -1,12 +1,6 @@
 import React from "react";
-import {
-  useNavigate,
-} from "react-router-dom";
-import {
-  Text,
-  Stack,
-  Spinner,
-} from "@chakra-ui/react";
+import { useNavigate } from "react-router-dom";
+import { Text, Stack, Spinner } from "@chakra-ui/react";
 import { useContext } from "react";
 import { Company, Grant, Shareholder, User } from "../types";
 import { useMutation, useQueryClient } from "react-query";
@@ -25,7 +19,13 @@ export function DoneStep() {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ grant }),
-    }).then((res) => res.json())
+    }).then((res) => {
+      if (res.ok) {
+        return res.json();
+      } else {
+        throw new Error("Failed to create grant");
+      }
+    })
   );
   const shareholderMutation = useMutation<Shareholder, unknown, Shareholder>(
     (shareholder) =>
@@ -33,7 +33,13 @@ export function DoneStep() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(shareholder),
-      }).then((res) => res.json()),
+      }).then((res) => {
+        if (res.ok) {
+          return res.json();
+        } else {
+          throw new Error("Failed to create shareholder");
+        }
+      }),
     {
       onSuccess: () => {
         queryClient.invalidateQueries("user");
@@ -45,7 +51,13 @@ export function DoneStep() {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(user),
-    }).then((res) => res.json())
+    }).then((res) => {
+      if (res.ok) {
+        return res.json();
+      } else {
+        throw new Error("Failed to create user");
+      }
+    })
   );
 
   const companyMutation = useMutation<Company, unknown, Company>((company) =>
@@ -53,30 +65,44 @@ export function DoneStep() {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(company),
-    }).then((res) => res.json())
+    }).then((res) => {
+      if (res.ok) {
+        return res.json();
+      } else {
+        throw new Error("Failed to create company");
+      }
+    })
   );
 
   React.useEffect(() => {
     async function saveData() {
-      // This only runs twice in React.StrictMode dev environment, it may cause 
+      // Do not run and save this if these are missing.
+      if (!email || !userName || !companyName) {
+        console.error("Missing required fields");
+        return;
+      }
+      // This only runs twice in React.StrictMode dev environment, it may cause
       // an error that can be worked through.
-      const user = await userMutation.mutateAsync({ email, name: userName });
-      console.log("shareholders:", shareholders, "grants:", grants, "companyName:", companyName)
-      await Promise.all([
-        ...Object.values(grants).map((grant) =>
-          grantMutation.mutateAsync(grant)
-        ),
-        ...Object.values(shareholders).map((shareholder) =>
-          shareholderMutation.mutateAsync(shareholder)
-        ),
-        companyMutation.mutateAsync({ name: companyName }),
-      ]);
+      try {
+        const user = await userMutation.mutateAsync({ email, name: userName });
+        await Promise.all([
+          ...Object.values(grants).map((grant) =>
+            grantMutation.mutateAsync(grant)
+          ),
+          ...Object.values(shareholders).map((shareholder) =>
+            shareholderMutation.mutateAsync(shareholder)
+          ),
+          companyMutation.mutateAsync({ name: companyName }),
+        ]);
 
-      if (user) {
-        authorize(user);
-        navigate("/dashboard");
-      } else {
-        // Something bad happened
+        if (user) {
+          authorize(user);
+          navigate("/dashboard");
+        } else {
+          // Something bad happened
+        }
+      } catch (e) {
+        console.error(e);
       }
     }
 

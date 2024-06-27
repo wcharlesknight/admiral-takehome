@@ -1,5 +1,5 @@
 import { rest } from "msw";
-import { Company, User, Shareholder, Grant } from "./types";
+import { Company, User, Shareholder, Grant, CompanyValue } from "./types";
 
 function nextID(collection: { [key: number]: unknown }) {
   return (
@@ -16,16 +16,24 @@ export function getHandlers(
     users?: { [email: string]: User };
     shareholders?: { [id: number]: Shareholder };
     grants?: { [id: number]: Grant };
+    value?: CompanyValue;
   } = {},
   persist: boolean = false
 ) {
-  let { company, users = {}, shareholders = {}, grants = {} } = params;
+  let {
+    company,
+    users = {},
+    shareholders = {},
+    grants = {},
+    value = { preferredValue: 100.0, commonValue: 100.0 },
+  } = params;
   if (persist) {
     storeState({
       shareholders,
       users,
       grants,
       company,
+      value,
     });
     setInterval(() => {
       if (localStorage.getItem("data")) {
@@ -34,6 +42,7 @@ export function getHandlers(
           users,
           grants,
           company,
+          value,
         });
       }
     }, 5000);
@@ -55,31 +64,39 @@ export function getHandlers(
       return res(ctx.json(company));
     }),
 
-    rest.post<Omit<Shareholder, "id">>(
-      "/shareholder/new",
-      (req, res, ctx) => {
-        const { name, email, grants = [], group } = req.body;
-        const shareholder: Shareholder = {
-          name,
-          email,
-          grants,
-          id: nextID(shareholders),
-          group,
-        };
-        shareholders[shareholder.id] = shareholder;
-        if (email) {
-          const existingUser = users[email];
-          if (existingUser.shareholderID) {
-            // User already has a shareholder ID
-            console.error("User already has a shareholder ID");
-            return res(ctx.status(400));
-          }
-          users[email].shareholderID = shareholder.id;
-        }
-
-        return res(ctx.json(shareholder));
+    rest.post<CompanyValue>("/value/new", (req, res, ctx) => {
+      if (req.body.commonValue) {
+        value.commonValue = req.body.commonValue;
       }
-    ),
+      if (req.body.preferredValue) {
+        value.preferredValue = req.body.preferredValue;
+      }
+
+      return res(ctx.json(value));
+    }),
+
+    rest.post<Omit<Shareholder, "id">>("/shareholder/new", (req, res, ctx) => {
+      const { name, email, grants = [], group } = req.body;
+      const shareholder: Shareholder = {
+        name,
+        email,
+        grants,
+        id: nextID(shareholders),
+        group,
+      };
+      shareholders[shareholder.id] = shareholder;
+      if (email) {
+        const existingUser = users[email];
+        if (existingUser.shareholderID) {
+          // User already has a shareholder ID
+          console.error("User already has a shareholder ID");
+          return res(ctx.status(400));
+        }
+        users[email].shareholderID = shareholder.id;
+      }
+
+      return res(ctx.json(shareholder));
+    }),
 
     rest.post<{ shareholderID?: number; grant: Omit<Grant, "id"> }>(
       "/grant/new",
@@ -88,7 +105,18 @@ export function getHandlers(
           shareholderID,
           grant: { issued, name, amount, type },
         } = req.body;
-        const grant: Grant = { name, issued, amount, id: nextID(grants), type };
+        // If a date isn't selected add a default date of today
+        const issuedDate = issued
+          ? issued
+          : new Date().toISOString().split("T")[0];
+
+        const grant: Grant = {
+          name,
+          issued: issuedDate,
+          amount,
+          id: nextID(grants),
+          type,
+        };
         grants[grant.id] = grant;
 
         if (
@@ -103,7 +131,6 @@ export function getHandlers(
     ),
 
     rest.post<User>("/user/new", (req, res, ctx) => {
-      console.log("im in here")
       const { email, name } = req.body;
       if (!!users[email]) {
         console.warn("User already exists");
@@ -118,15 +145,19 @@ export function getHandlers(
       return res(ctx.json(req.body));
     }),
 
-    rest.get("/grants", (req, res, ctx) => {
+    rest.get("/grants", (_req, res, ctx) => {
       return res(ctx.json(grants));
     }),
 
-    rest.get("/shareholders", (req, res, ctx) => {
+    rest.get("/shareholders", (_req, res, ctx) => {
       return res(ctx.json(shareholders));
     }),
 
-    rest.get("/company", (req, res, ctx) => {
+    rest.get("/value", (_req, res, ctx) => {
+      return res(ctx.json(value));
+    }),
+
+    rest.get("/company", (_req, res, ctx) => {
       return res(ctx.json(company));
     }),
 

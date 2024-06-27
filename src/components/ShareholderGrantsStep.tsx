@@ -1,9 +1,5 @@
-import React from "react";
-import {
-  Link,
-  Navigate,
-  useParams,
-} from "react-router-dom";
+import React, { useCallback } from "react";
+import { Link, Navigate, useParams } from "react-router-dom";
 import {
   Text,
   Stack,
@@ -19,46 +15,48 @@ import {
   Modal,
   useDisclosure,
   ModalContent,
+  Select,
 } from "@chakra-ui/react";
 import { useContext } from "react";
-import {  Grant  } from "../types" 
+import { Grant } from "../types";
 import { OnboardingContext } from "../context/OnboardingContext";
 
 export function ShareholderGrantsStep() {
   const { shareholders, grants, dispatch } = useContext(OnboardingContext);
-  const { shareholderID = '' } = useParams();
+  const { shareholderID = "" } = useParams();
   const { isOpen, onOpen, onClose } = useDisclosure();
   const shareholder = shareholders[parseInt(shareholderID, 10)];
-  console.log(shareholders,  "shareholder")
+
   const [draftGrant, setDraftGrant] = React.useState<Omit<Grant, "id">>({
     name: "",
     amount: 0,
     issued: "",
     type: "common",
   });
-  console.log(shareholderID, "shareholderID", parseInt(shareholderID, 10), "parseInt(shareholderID, 10)")
-  // console.log(!shareholders[shareholder.id + 1], "to done")
-  console.log("shareholders: ", shareholders)
+
+  const submitGrant = useCallback(
+    (e: React.FormEvent) => {
+      e.preventDefault();
+      dispatch({
+        type: "addGrant",
+        payload: {
+          shareholderID: parseInt(shareholderID, 10),
+          grant: draftGrant,
+        },
+      });
+      onClose();
+      setDraftGrant({ name: "", amount: 0, issued: "", type: "common" });
+    },
+    [draftGrant, dispatch, onClose, shareholderID]
+  );
+
   if (!shareholder) {
-    console.log("to start shareholders")
     return <Navigate to="/start/shareholders" replace={true} />;
   }
- 
-  const nextLink =  !shareholders[shareholder.id + 1] ? `../done`
-    : `../grants/${shareholder.id + 1}`;
 
-  function submitGrant(e: React.FormEvent) {
-    e.preventDefault();
-    dispatch({
-      type: "addGrant",
-      payload: {
-        shareholderID: parseInt(shareholderID, 10),
-        grant: draftGrant,
-      },
-    });
-    onClose();
-    setDraftGrant({ name: "", amount: 0, issued: "", type: "common" });
-  }
+  const nextLink = !shareholders[shareholder.id + 1]
+    ? `../done`
+    : `../grants/${shareholder.id + 1}`;
 
   return (
     <Stack>
@@ -126,6 +124,22 @@ export function ShareholderGrantsStep() {
                   }))
                 }
               />
+            </FormControl>
+            <FormControl>
+              <Select
+                variant="flushed"
+                placeholder="Select Share Type"
+                data-testid="select-share-type"
+                onChange={(e) => {
+                  setDraftGrant((g) => ({
+                    ...g,
+                    type: e.target.value as Grant["type"],
+                  }));
+                }}
+              >
+                <option value="common">Common</option>
+                <option value="preferred">Preferred</option>
+              </Select>
             </FormControl>
             <FormControl>
               <Input

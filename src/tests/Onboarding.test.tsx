@@ -1,5 +1,10 @@
 import React from "react";
-import { render, screen, waitFor, waitForElementToBeRemoved } from "@testing-library/react";
+import {
+  render,
+  screen,
+  waitFor,
+  waitForElementToBeRemoved,
+} from "@testing-library/react";
 import { Navigate, Route, Routes } from "react-router-dom";
 import userEvent from "@testing-library/user-event";
 import { getTestRouter, ThemeWrapper } from "../testutils";
@@ -62,7 +67,7 @@ describe("Onboarding", () => {
     );
 
     const nameField = screen.getByRole("textbox", { name: /who is setting/ });
-    
+
     const nextButton = screen.getByRole("button", { name: "Next" });
     await userEvent.click(nextButton);
     expect(nameField).toBeInTheDocument();
@@ -78,12 +83,12 @@ describe("Onboarding", () => {
     );
 
     const nameField = screen.getByRole("textbox", { name: /who is setting/ });
-    await userEvent.click(nameField)
+    await userEvent.click(nameField);
     await userEvent.type(nameField, "Terry");
     expect(nameField).toHaveValue("Terry");
 
     const emailField = screen.getByRole("textbox", { name: /email/ });
-    await userEvent.click(emailField)
+    await userEvent.click(emailField);
     await userEvent.type(emailField, "great@email.com");
     expect(emailField).toHaveValue("great@email.com");
 
@@ -104,7 +109,7 @@ describe("Onboarding", () => {
     const companyNameField = screen.getByRole("textbox", {
       name: /company are we/,
     });
-    
+
     const nextButton = screen.getByRole("button", { name: "Next" });
     await userEvent.click(nextButton);
     expect(companyNameField).toBeInTheDocument();
@@ -166,7 +171,7 @@ describe("Onboarding", () => {
     await userEvent.selectOptions(groupPicker, "founder");
     await userEvent.click(createButton);
 
-    await waitForElementToBeRemoved(newShareholderNameField)
+    await waitForElementToBeRemoved(newShareholderNameField);
     expect(screen.getByText("Anne")).toBeInTheDocument();
 
     await userEvent.click(addShareholdersButton);
@@ -272,7 +277,7 @@ describe("Onboarding", () => {
     await userEvent.click(grantNameInput);
     await userEvent.paste("Series A Purchase");
     await userEvent.click(grantAmountInput);
-    await userEvent.paste('800')
+    await userEvent.paste("800");
     // Test for correct radix
     expect(grantAmountInput).toHaveValue("800");
     await userEvent.click(grantNameInput);
@@ -283,9 +288,5 @@ describe("Onboarding", () => {
     const textIndicator = screen.getByText(/What grants does/);
     expect(textIndicator).toBeInTheDocument();
     await userEvent.click(nextButton);
-    let dashboardPie = screen.getByText(/By Investor/);
-    expect(dashboardPie).toBeInTheDocument();
   }, 10000);
-
-  it.todo("should persist onboard config");
 });

@@ -1,5 +1,4 @@
 import React from "react";
-import "./App.css";
 import { Route, Routes, Navigate } from "react-router-dom";
 import { Container } from "@chakra-ui/react";
 import { User } from "./types";
@@ -9,9 +8,6 @@ import { Dashboard } from "./pages/Dashboard";
 import { Signin } from "./pages/Signin";
 import { ShareholderPage } from "./pages/Shareholder";
 import { AuthContext } from "./context/AuthContext";
-import { signupReducer } from "./reducers/SignupReducer";
-import { OnboardingContext } from "./context/OnboardingContext";
-
 
 function App() {
   const [user, setUser] = React.useState<User | undefined>(() => {
@@ -27,13 +23,7 @@ function App() {
       localStorage.setItem("session", JSON.stringify(user));
     }
   }, [user]);
-  const [state, dispatch] = React.useReducer(signupReducer, {
-    userName: "",
-    email:  "",
-    companyName: "",
-    shareholders:  {},
-    grants:  {},
-  });
+
   return (
     <AuthContext.Provider
       value={{
@@ -42,16 +32,17 @@ function App() {
         deauthroize: () => setUser(undefined),
       }}
     >
-      <OnboardingContext.Provider value={{ ...state, dispatch }}> 
       <Container paddingTop="16" paddingBottom="16">
         <Routes>
           {user ? (
             <>
               <Route
                 path="/dashboard"
-                element={<Navigate to="/dashboard/investor" replace={true} />}
+                element={
+                  <Navigate to="/dashboard/investor/amount" replace={true} />
+                }
               />
-              <Route path="/dashboard/:mode" element={<Dashboard />} />
+              <Route path="/dashboard/:mode/:view" element={<Dashboard />} />
               <Route
                 path="/shareholder/:shareholderID"
                 element={<ShareholderPage />}
@@ -68,7 +59,6 @@ function App() {
           )}
         </Routes>
       </Container>
-      </OnboardingContext.Provider>
     </AuthContext.Provider>
   );
 }

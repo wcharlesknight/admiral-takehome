@@ -1,5 +1,5 @@
-import React from "react";
-import { useParams } from "react-router-dom";
+import React, { useCallback } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import {
   Text,
   Heading,
@@ -23,33 +23,33 @@ import {
   Select,
 } from "@chakra-ui/react";
 import { ReactComponent as Avatar } from "../assets/avatar-male.svg";
-import { Company, Grant, Shareholder } from "../types";
+import { CompanyValue, Grant, Query, Shareholder } from "../types";
 import { useMutation, useQuery, useQueryClient } from "react-query";
 import produce from "immer";
 
 export function ShareholderPage() {
   const queryClient = useQueryClient();
   const { isOpen, onOpen, onClose } = useDisclosure();
-  const { shareholderID = ''} = useParams();
-  const grantQuery = useQuery<{ [dataID: number]: Grant }>("grants", () =>
+  const { shareholderID = "" } = useParams();
+  const navigate = useNavigate();
+  const grantQuery = useQuery<Query<Grant>>("grants", () =>
     fetch("/grants").then((e) => e.json())
   );
-  const shareholderQuery = useQuery<{ [dataID: number]: Shareholder }>(
-    "shareholders",
-    () => fetch("/shareholders").then((e) => e.json())
+  const shareholderQuery = useQuery<Query<Shareholder>>("shareholders", () =>
+    fetch("/shareholders").then((e) => e.json())
   );
-  // This is needed by candidates, and put here early so candidates don't get caught up on react-query
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const companyQuery = useQuery<Company>("company", () =>
-    fetch("/company").then((e) => e.json())
+
+  const value = useQuery<CompanyValue>("value", () =>
+    fetch("/value").then((e) => e.json())
   );
-  console.log("im in Shareholder page")
+
   const [draftGrant, setDraftGrant] = React.useState<Omit<Grant, "id">>({
     name: "",
     amount: 0,
     issued: "",
     type: "common",
   });
+
   const grantMutation = useMutation<Grant, unknown, Omit<Grant, "id">>(
     (grant) =>
       fetch("/grant/new", {
@@ -59,12 +59,16 @@ export function ShareholderPage() {
           shareholderID: parseInt(shareholderID, 10),
           grant,
         }),
-      }).then((res) => res.json()),
+      }).then((res) => {
+        if (res.ok) {
+          return res.json();
+        } else {
+          throw new Error("Failed to create grant");
+        }
+      }),
     {
       onSuccess: (data) => {
-        // this doesn't seem to triggering an instant re-render on consumers even though thats that it should ...
-        /// https://github.com/tannerlinsley/react-query/issues/326
-        queryClient.setQueryData<{ [id: number]: Shareholder } | undefined>(
+        queryClient.setQueryData<Query<Shareholder> | undefined>(
           "shareholders",
           (s) => {
             if (s)
@@ -73,29 +77,30 @@ export function ShareholderPage() {
               });
           }
         );
-        queryClient.setQueriesData<{ [id: number]: Grant } | undefined>(
-          "grants",
-          (g) => {
-            if (g) {
-              return produce(g, (draft) => {
-                draft[data.id] = data;
-              });
-            }
+        queryClient.setQueriesData<Query<Grant> | undefined>("grants", (g) => {
+          if (g) {
+            return produce(g, (draft) => {
+              draft[data.id] = data;
+            });
           }
-        );
+        });
       },
     }
   );
-  async function submitGrant(e: React.FormEvent) {
-    e.preventDefault();
-    try {
-      await grantMutation.mutateAsync(draftGrant);
-      onClose();
-      setDraftGrant({ name: "", amount: 0, issued: "", type: "common" });
-    } catch (e) {
-      console.warn(e);
-    }
-  }
+
+  const submitGrant = useCallback(
+    async (e: React.FormEvent) => {
+      e.preventDefault();
+      try {
+        await grantMutation.mutateAsync(draftGrant);
+        onClose();
+        setDraftGrant({ name: "", amount: 0, issued: "", type: "common" });
+      } catch (e) {
+        console.warn(e);
+      }
+    },
+    [grantMutation, draftGrant, onClose, setDraftGrant]
+  );
 
   if (
     grantQuery.status !== "success" ||
@@ -114,8 +119,27 @@ export function ShareholderPage() {
 
   const shareholder = shareholderQuery.data[parseInt(shareholderID)];
 
+  const totalEquity = () => {
+    const commonMultiplier = value.data?.commonValue || 1;
+    const preferredMultiplier = value.data?.preferredValue || 1;
+    return shareholder.grants.reduce((acc, grantID) => {
+      const { amount, type } = grantQuery.data[grantID];
+      return (
+        acc +
+        (type === "common" ? commonMultiplier : preferredMultiplier) * amount
+      );
+    }, 0);
+  };
+
+  const back = () => {
+    navigate("/dashboard");
+  };
+
   return (
     <Stack>
+      <Button colorScheme="teal" width="20%" onClick={back}>
+        Back
+      </Button>
       <Stack direction="row" justify="space-between" alignItems="baseline">
         <Heading
           size="md"
@@ -137,8 +161,8 @@ export function ShareholderPage() {
           <Text fontSize="sm" fontWeight="thin">
             <strong data-testid="grants-issued">
               {shareholder.grants.length}
-            </strong>{" "}
-            grants issued
+            </strong>
+            <span> grants issued</span>
           </Text>
           <Text fontSize="sm" fontWeight="thin">
             <strong data-testid="shares-granted">
@@ -146,8 +170,14 @@ export function ShareholderPage() {
                 (acc, grantID) => acc + grantQuery.data[grantID].amount,
                 0
               )}
-            </strong>{" "}
-            shares
+            </strong>
+            <span> shares</span>
+          </Text>
+          <Text fontSize="sm" fontWeight="thin">
+            <strong data-testid="total-equity">
+              ${totalEquity().toLocaleString()}
+            </strong>
+            <span> total equity</span>
           </Text>
         </Stack>
       </Stack>
@@ -168,13 +198,20 @@ export function ShareholderPage() {
           {shareholderQuery.data[parseInt(shareholderID, 10)].grants.map(
             (grantID) => {
               const { name, issued, amount, type } = grantQuery.data[grantID];
+              const commonMultiplier = value.data?.commonValue || 1;
+              const preferredMultiplier = value.data?.preferredValue || 1;
               return (
                 <Tr key={grantID}>
                   <Td>{name}</Td>
                   <Td>{new Date(issued).toLocaleDateString()}</Td>
                   <Td>{amount}</Td>
                   <Td>{type}</Td>
-                  <Td></Td>
+                  <Td>
+                    $
+                    {type === "common"
+                      ? (commonMultiplier * amount).toLocaleString()
+                      : (preferredMultiplier * amount).toLocaleString()}
+                  </Td>
                 </Tr>
               );
             }
@@ -221,19 +258,20 @@ export function ShareholderPage() {
               />
             </FormControl>
             <FormControl>
-            <Select
-    variant="filled" // Specify the variant you want here
-    placeholder="Select option"
-    data-testid="select-option"
-    onChange={(e) => {
-      // Handle the change
-      console.log(e.target.value);
-    }}
-  >
-    <option value="option1">Option 1</option>
-    <option value="option2">Option 2</option>
-    <option value="option3">Option 3</option>
-  </Select>
+              <Select
+                variant="flushed"
+                placeholder="Select Share Type"
+                data-testid="select-share-type"
+                onChange={(e) => {
+                  setDraftGrant((g) => ({
+                    ...g,
+                    type: e.target.value as Grant["type"],
+                  }));
+                }}
+              >
+                <option value="common">Common</option>
+                <option value="preferred">Preferred</option>
+              </Select>
             </FormControl>
             <FormControl>
               <Input

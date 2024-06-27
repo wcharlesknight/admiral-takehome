@@ -1,10 +1,5 @@
 import React from "react";
-import {
-  render,
-  screen,
-  waitFor,
-  within,
-} from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import { getTestRouter, server, ThemeWrapper } from "../testutils";
 import { ShareholderPage } from "../pages/Shareholder";
 import { Route, Routes } from "react-router";
@@ -57,6 +52,54 @@ describe("ShareholderPage", () => {
 
     expect(screen.getByTestId("grants-issued")).toHaveTextContent("2");
     expect(screen.getByTestId("shares-granted")).toHaveTextContent("1500");
+  });
+  it("should show total equity", async () => {
+    const Router = getTestRouter("/shareholder/0");
+    const handlers = getHandlers(
+      {
+        company: { name: "My Company" },
+        shareholders: {
+          0: { name: "Tonya", grants: [1, 2], group: "founder", id: 0 },
+        },
+        grants: {
+          1: {
+            id: 1,
+            name: "Initial Grant",
+            amount: 1000,
+            issued: Date.now().toLocaleString(),
+            type: "common",
+          },
+          2: {
+            id: 2,
+            name: "Incentive Package 2020",
+            amount: 500,
+            issued: Date.now().toLocaleString(),
+            type: "common",
+          },
+        },
+      },
+      false
+    );
+    server.use(...handlers);
+
+    render(
+      <Router>
+        <Routes>
+          <Route
+            path="/shareholder/:shareholderID"
+            element={<ShareholderPage />}
+          />
+        </Routes>
+      </Router>,
+      { wrapper: ThemeWrapper }
+    );
+
+    await screen.findByRole("button", { name: /Add Grant/ });
+
+    const amount = 1000 * 100 + 500 * 100;
+    expect(screen.getByTestId("total-equity")).toHaveTextContent(
+      amount.toLocaleString()
+    );
   });
 
   it("should allow adding new grants", async () => {
@@ -118,10 +161,10 @@ describe("ShareholderPage", () => {
 
     await userEvent.click(grantNameInput);
     await userEvent.type(grantNameInput, "Incentive Package 2019");
-    await userEvent.click(grantAmountInput)
+    await userEvent.click(grantAmountInput);
     await userEvent.type(grantAmountInput, "2000");
-    await userEvent.click(grantDateInput)
-    await userEvent.type(grantDateInput,"2010-12-12");
+    await userEvent.click(grantDateInput);
+    await userEvent.type(grantDateInput, "2010-12-12");
     expect(grantNameInput).toHaveValue();
     expect(grantAmountInput).toHaveValue();
     expect(grantDateInput).toHaveValue();
@@ -130,17 +173,11 @@ describe("ShareholderPage", () => {
     await userEvent.click(saveButton);
 
     expect(
-      await within(grantTable).findByText(
-        /Incentive Package 2019/
-      )
+      await within(grantTable).findByText(/Incentive Package 2019/)
     ).toBeInTheDocument();
+    expect(within(grantTable).getByText(/2000/)).toBeInTheDocument();
     expect(
-      within(grantTable).getByText(/2000/)
-    ).toBeInTheDocument();
-    expect(
-      within(grantTable).getByText(
-      new Date("2010-12-12").toLocaleDateString(),
-      )
+      within(grantTable).getByText(new Date("2010-12-12").toLocaleDateString())
     ).toBeInTheDocument();
   });
 });

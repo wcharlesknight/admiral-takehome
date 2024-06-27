@@ -19,15 +19,12 @@ export function signupReducer(
             group: "founder",
           };
         }
-        sessionStorage.setItem("onboarding", JSON.stringify(draft));
         break;
       case "updateEmail":
         draft.email = action.payload;
-        sessionStorage.setItem("onboarding", JSON.stringify(draft));
         break;
       case "updateCompany":
         draft.companyName = action.payload;
-        sessionStorage.setItem("onboarding", JSON.stringify(draft));
         break;
       case "addShareholder":
         const nextShareholderID =
@@ -40,7 +37,6 @@ export function signupReducer(
           grants: [],
           ...action.payload,
         };
-        sessionStorage.setItem("onboarding", JSON.stringify(draft));
         break;
       case "addGrant":
         const nextGrantID =
@@ -48,6 +44,10 @@ export function signupReducer(
             0,
             ...Object.keys(draft.grants).map((e) => parseInt(e, 10))
           ) + 1;
+        // Default date
+        if (!action.payload.grant.issued) {
+          action.payload.grant.issued = new Date().toISOString().split("T")[0];
+        }
         draft.grants[nextGrantID] = {
           id: nextGrantID,
           ...action.payload.grant,
@@ -55,7 +55,6 @@ export function signupReducer(
         draft.shareholders[action.payload.shareholderID].grants.push(
           nextGrantID
         );
-        sessionStorage.setItem("onboarding", JSON.stringify(draft));
         break;
     }
   });
