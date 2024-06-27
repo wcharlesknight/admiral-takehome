@@ -15,6 +15,7 @@ import { CompanyStep } from "../components/onboarding/CompanyStep";
 import { ShareholdersStep } from "../components/onboarding/ShareholdersStep";
 import { ShareholderGrantsStep } from "../components/onboarding/ShareholderGrantsStep";
 import { signupReducer } from "../reducers/SignupReducer";
+import { DoneStep } from "../components/onboarding/DoneStep";
 
 const defaultOnboardingState = {
   userName: "",
@@ -50,7 +51,7 @@ const Page = ({
           path="grants/:shareholderID"
           element={<ShareholderGrantsStep />}
         />
-        <Route path="done" element={<div />} />
+        <Route path="done" element={<DoneStep />} />
       </Routes>
     </OnboardingContext.Provider>
   );
@@ -191,13 +192,14 @@ describe("Onboarding", () => {
     expect(screen.getByText("Byron")).toBeInTheDocument();
   });
 
-  it("should allow for configuring shareholder grants", async () => {
-    const Router = getTestRouter("/grants");
+  it("should have proper data displayed", async () => {
+    const Router = getTestRouter("/done");
     render(
       <Router>
         <Page
           initialState={{
-            ...defaultOnboardingState,
+            email: "test@test.com",
+            userName: "test person",
             companyName: "My Company",
             shareholders: {
               0: { name: "Jenn", group: "founder", grants: [1], id: 0 },
@@ -219,74 +221,69 @@ describe("Onboarding", () => {
       { wrapper: ThemeWrapper }
     );
 
-    expect(screen.getByText(/Jenn/)).toBeInTheDocument();
-    expect(screen.getByText("Initial issuance")).toBeInTheDocument();
+    const companyName = await screen.findByTestId("done-company-name");
+    expect(companyName).toHaveTextContent("My Company");
+    const jenn = await screen.findByTestId("Jenn-done");
+    const aaron = await screen.findByTestId("Aaron-done");
+    const sam = await screen.findByTestId("Sam-done");
+    expect(jenn).toHaveTextContent("Jenn");
+    expect(aaron).toHaveTextContent("Aaron");
+    expect(sam).toHaveTextContent("Sam");
+  });
 
-    const addGrantButton = screen.getByRole("button", { name: /Add Grant/ });
-    await userEvent.click(addGrantButton);
+  it("should allow configuring shareholders", async () => {
+    const Router = getTestRouter("/shareholders");
+    render(
+      <Router>
+        <Page
+          initialState={{
+            ...defaultOnboardingState,
+            companyName: "My Company",
+            shareholders: {
+              "0": { name: "Jenn", group: "founder", grants: [], id: 0 },
+            },
+          }}
+        />
+      </Router>,
+      { wrapper: ThemeWrapper }
+    );
 
-    let grantNameInput = screen.getByTestId("grant-name");
-    let grantAmountInput = screen.getByTestId("grant-amount");
-    let grantDateInput = screen.getByTestId("grant-issued");
+    expect(screen.getByText("Jenn")).toBeInTheDocument();
+    expect(screen.queryByText("Anne")).toBeNull();
 
-    await waitFor(() => {
-      expect(grantNameInput).toBeVisible();
+    const addShareholdersButton = screen.getByRole("button", {
+      name: "Add Shareholder",
     });
+    await userEvent.click(addShareholdersButton);
 
-    await userEvent.click(grantNameInput);
-    await userEvent.paste("2020 Incentive");
-    await userEvent.click(grantAmountInput);
-    await userEvent.paste("2000");
-    await userEvent.click(grantDateInput);
-    await userEvent.paste(Date.now().toLocaleString());
+    let newShareholderNameField = screen.getByRole("textbox");
+    let groupPicker = screen.getByRole("combobox");
+    let createButton = screen.getByRole("button", { name: "Create" });
+    await waitFor(() => {
+      expect(newShareholderNameField).toBeVisible();
+    });
+    await userEvent.click(newShareholderNameField);
+    await userEvent.paste("Anne");
+    await userEvent.selectOptions(groupPicker, "founder");
+    await userEvent.click(createButton);
 
-    const saveButton = screen.getByRole("button", { name: /Save/ });
-    await userEvent.click(saveButton);
+    await waitForElementToBeRemoved(newShareholderNameField);
+    expect(screen.getByText("Anne")).toBeInTheDocument();
 
-    expect(screen.getByText("2020 Incentive")).toBeInTheDocument();
+    await userEvent.click(addShareholdersButton);
+    newShareholderNameField = screen.getByRole("textbox");
+    groupPicker = screen.getByRole("combobox");
+    createButton = screen.getByRole("button", { name: "Create" });
+    await waitFor(() => {
+      expect(newShareholderNameField).toBeVisible();
+    });
+    expect(newShareholderNameField).toHaveValue("");
 
-    let nextButton = screen.getByRole("link", { name: /Next/ });
-    await userEvent.click(nextButton);
+    await userEvent.click(newShareholderNameField);
+    await userEvent.paste("Byron");
+    await userEvent.selectOptions(groupPicker, "employee");
+    await userEvent.click(createButton);
 
-    await screen.findAllByText(/Aaron/);
-    expect(screen.getByText(/No grants to show/)).toBeInTheDocument();
-
-    await userEvent.click(addGrantButton);
-
-    expect(grantNameInput).toHaveValue("");
-    await userEvent.click(grantNameInput);
-    await userEvent.paste("Options conversion");
-    await userEvent.click(grantAmountInput);
-    await userEvent.paste("100");
-    await userEvent.click(grantDateInput);
-    await userEvent.paste(Date.now().toLocaleString());
-
-    await userEvent.click(saveButton);
-
-    expect(screen.getByText("Options conversion")).toBeInTheDocument();
-
-    nextButton = screen.getByRole("link", { name: /Next/ });
-    await userEvent.click(nextButton);
-
-    await screen.findAllByText(/Sam/);
-    expect(screen.getByText(/No grants to show/)).toBeInTheDocument();
-
-    await userEvent.click(addGrantButton);
-
-    expect(grantNameInput).toHaveValue("");
-    await userEvent.click(grantNameInput);
-    await userEvent.paste("Series A Purchase");
-    await userEvent.click(grantAmountInput);
-    await userEvent.paste("800");
-    // Test for correct radix
-    expect(grantAmountInput).toHaveValue("800");
-    await userEvent.click(grantNameInput);
-    await userEvent.paste("12/12/2020");
-
-    await userEvent.click(saveButton);
-
-    const textIndicator = screen.getByText(/What grants does/);
-    expect(textIndicator).toBeInTheDocument();
-    await userEvent.click(nextButton);
-  }, 10000);
+    expect(screen.getByText("Byron")).toBeInTheDocument();
+  });
 });

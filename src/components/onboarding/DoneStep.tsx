@@ -1,6 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { Text, Stack, Spinner } from "@chakra-ui/react";
+import { Text, Stack, Button } from "@chakra-ui/react";
 import { useContext } from "react";
 import { Company, Grant, Shareholder, User } from "../../types";
 import { useMutation, useQueryClient } from "react-query";
@@ -74,46 +74,58 @@ export function DoneStep() {
     })
   );
 
-  React.useEffect(() => {
-    async function saveData() {
-      // Do not run and save this if these are missing.
-      if (!email || !userName || !companyName) {
-        console.error("Missing required fields");
-        return;
-      }
-      // This only runs twice in React.StrictMode dev environment, it may cause
-      // an error that can be worked through.
-      try {
-        const user = await userMutation.mutateAsync({ email, name: userName });
-        await Promise.all([
-          ...Object.values(grants).map((grant) =>
-            grantMutation.mutateAsync(grant)
-          ),
-          ...Object.values(shareholders).map((shareholder) =>
-            shareholderMutation.mutateAsync(shareholder)
-          ),
-          companyMutation.mutateAsync({ name: companyName }),
-        ]);
-
-        if (user) {
-          authorize(user);
-          navigate("/dashboard");
-        } else {
-          // Something bad happened
-        }
-      } catch (e) {
-        console.error(e);
-      }
+  async function saveData() {
+    // Do not run and save this if these are missing.
+    if (!email || !userName || !companyName) {
+      console.error("Missing required fields");
+      return;
     }
+    // This only runs twice in React.StrictMode dev environment, it may cause
+    // an error that can be worked through.
+    try {
+      const user = await userMutation.mutateAsync({ email, name: userName });
+      await Promise.all([
+        ...Object.values(grants).map((grant) =>
+          grantMutation.mutateAsync(grant)
+        ),
+        ...Object.values(shareholders).map((shareholder) =>
+          shareholderMutation.mutateAsync(shareholder)
+        ),
+        companyMutation.mutateAsync({ name: companyName }),
+      ]);
 
-    saveData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+      if (user) {
+        authorize(user);
+        navigate("/dashboard");
+      } else {
+        // Something bad happened
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }
 
   return (
     <Stack alignItems="center">
-      <Spinner />
-      <Text color="teal.400">...Wrapping up</Text>
+      <Text data-testid="done-company-name" fontWeight="bold" color="teal">
+        Company: {companyName}
+      </Text>
+      <Text fontWeight="bold" color="teal">
+        Shareholders:
+      </Text>
+      {Object.values(shareholders).map((shareholder) => {
+        return (
+          <Text
+            data-testid={`${shareholder.name}-done`}
+            key={`${shareholder.id}`}
+          >
+            {shareholder.name}
+          </Text>
+        );
+      })}
+      <Button data-testid="finished-onboarding-btn" onClick={saveData}>
+        Ready to create Dashboard
+      </Button>
     </Stack>
   );
 }

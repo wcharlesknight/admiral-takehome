@@ -23,15 +23,15 @@ const root = ReactDOM.createRoot(rootElement as HTMLElement);
 // is sent to the backend. For this assessment, I've commented it out to
 // mock a "production" like experience.
 root.render(
-  // <React.StrictMode>
-  <QueryClientProvider client={queryClient}>
-    <ChakraProvider>
-      <Router>
-        <App />
-      </Router>
-    </ChakraProvider>
-  </QueryClientProvider>
-  // </React.StrictMode>
+  <React.StrictMode>
+    <QueryClientProvider client={queryClient}>
+      <ChakraProvider>
+        <Router>
+          <App />
+        </Router>
+      </ChakraProvider>
+    </QueryClientProvider>
+  </React.StrictMode>
 );
 
 // If you want to start measuring performance in your app, pass a function

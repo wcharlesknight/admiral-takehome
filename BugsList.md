@@ -18,11 +18,15 @@ Bugs:
 - Added navigation back to company page if there is no name. Someone would have to manually set the URL to get this behavior but there was a todo.
 - Added a back button in shareholder view as it seemed wrong without it. Also considered a "signout" button but didn't seem necessary.
 - On Dashboard I put submitNewShareholder inside a useCallback as it relies on a state variable. Also added a try/catch and an error thrown if it's a bad mutation. Also did this with submitGrant in Shareholder.tsx
+- Turn off refetch on refocus, no need and causes too many calls.
+- Took out all of the backend calls from the useEffect in DoneStep.tsx. Too bulky and could cause potential problems if two renders were to happen.
+- Shareholder page needed some padding to show equity/grants etc.
 
 Considerations:
 
-- email format validation - usually done on backend i.e. some sort of regex or library.
-- separate Shareholder out component - probably warranted but kept as is.
-- no signout button? Was able to confirm signed in worked with manually deleting session and using tests.
+- Email format validation - usually done on backend i.e. some sort of regex or library.
+- Separate Shareholder out component - probably warranted but kept as is.
+- No signout button? Was able to confirm signed in worked with manually deleting session and using tests.
 - Probaby could've cut down on calls when switching between pages. Use of localStorage as caching could've been possible, probabyl overkill for most situations but a heavy trafficked site it could make all the difference.
-- The massive backend call on the DoneStep.tsx within the useEffect is a little dangerous and was exposed with react strict mode, it could probably be done with a button press as opposed to a mount. Although it isn't necessarily an anti-pattern so I kept as is.
+- Some tests fail randomly, you may need to re-run
+- Thought about removing refetch on refocus to cut down on api calls, worth discussing.
