@@ -1,3 +1,4 @@
+import moment from "moment-timezone";
 import { rest } from "msw";
 import { Company, User, Shareholder, Grant, CompanyValue } from "./types";
 
@@ -105,10 +106,13 @@ export function getHandlers(
           shareholderID,
           grant: { issued, name, amount, type },
         } = req.body;
+
+        // Set the default timezone to the local timezone of the computer
+        const localTimezone = moment.tz.guess();
         // If a date isn't selected add a default date of today
         const issuedDate = issued
-          ? issued
-          : new Date().toISOString().split("T")[0];
+          ? moment.tz(issued, localTimezone).format("YYYY-MM-DD")
+          : moment().tz(localTimezone).format("YYYY-MM-DD");
 
         const grant: Grant = {
           name,

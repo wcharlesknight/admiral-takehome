@@ -26,6 +26,7 @@ import { ReactComponent as Avatar } from "../assets/avatar-male.svg";
 import { CompanyValue, Grant, Query, Shareholder } from "../types";
 import { useMutation, useQuery, useQueryClient } from "react-query";
 import produce from "immer";
+import moment from "moment-timezone";
 
 export function ShareholderPage() {
   const queryClient = useQueryClient();
@@ -200,10 +201,13 @@ export function ShareholderPage() {
               const { name, issued, amount, type } = grantQuery.data[grantID];
               const commonMultiplier = value.data?.commonValue || 1;
               const preferredMultiplier = value.data?.preferredValue || 1;
+              const localTimezone = moment.tz.guess();
               return (
                 <Tr key={grantID}>
                   <Td>{name}</Td>
-                  <Td>{new Date(issued).toLocaleDateString()}</Td>
+                  <Td>
+                    {moment.tz(issued, localTimezone).format("YYYY-MM-DD")}
+                  </Td>
                   <Td>{amount}</Td>
                   <Td>{type}</Td>
                   <Td>

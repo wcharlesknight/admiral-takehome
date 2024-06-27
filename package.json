@@ -20,6 +20,7 @@
     "husky": "^8.0.3",
     "immer": "^9.0.19",
     "lint-staged": "^13.1.2",
+    "moment-timezone": "^0.5.45",
     "msw": "^1.1.0",
     "prettier": "^2.8.4",
     "react": "^18.2.0",

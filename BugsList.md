@@ -21,6 +21,7 @@ Bugs:
 - Turn off refetch on refocus, no need and causes too many calls.
 - Took out all of the backend calls from the useEffect in DoneStep.tsx. Too bulky and could cause potential problems if two renders were to happen.
 - Shareholder page needed some padding to show equity/grants etc.
+- Bug for dates when creating a new grant, they would be a day behind.
 
 Considerations:
 
