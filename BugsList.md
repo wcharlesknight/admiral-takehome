@@ -28,6 +28,7 @@ Considerations:
 - Email format validation - usually done on backend i.e. some sort of regex or library.
 - Separate Shareholder out component - probably warranted but kept as is.
 - No signout button? Was able to confirm signed in worked with manually deleting session and using tests.
-- Probaby could've cut down on calls when switching between pages. Use of localStorage as caching could've been possible, probabyl overkill for most situations but a heavy trafficked site it could make all the difference.
+- Probaby could've cut down on calls when switching between pages. Use of localStorage as caching could've been possible, probably overkill for most situations but a heavy trafficked site it could make all the difference.
 - Some tests fail randomly, you may need to re-run
 - Thought about removing refetch on refocus to cut down on api calls, worth discussing.
+- In terms of testing, I added a fair amount but this is an area I haven't done extensive work in. Much of it has been testing components and manual testing. Testing APIs and navigating seemed tricky, so I left it.

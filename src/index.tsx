@@ -18,10 +18,6 @@ const queryClient = new QueryClient();
 const rootElement = document.getElementById("root");
 // Create a root. Note that this can be null as default, we know this exists so we typecast it defined.
 const root = ReactDOM.createRoot(rootElement as HTMLElement);
-// Note: React.StrictMode causes double rendering, which led to some
-// problems in dev environment. Most notably in the DoneStep.tsx when everything
-// is sent to the backend. For this assessment, I've commented it out to
-// mock a "production" like experience.
 root.render(
   <React.StrictMode>
     <QueryClientProvider client={queryClient}>
