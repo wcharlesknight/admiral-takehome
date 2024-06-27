@@ -10,10 +10,10 @@ import userEvent from "@testing-library/user-event";
 import { getTestRouter, ThemeWrapper } from "../testutils";
 import { OnboardingContext } from "../context/OnboardingContext";
 import { OnboardingFields } from "../types";
-import { UserStep } from "../components/UserStep";
-import { CompanyStep } from "../components/CompanyStep";
-import { ShareholdersStep } from "../components/ShareholdersStep";
-import { ShareholderGrantsStep } from "../components/ShareholderGrantsStep";
+import { UserStep } from "../components/onboarding/UserStep";
+import { CompanyStep } from "../components/onboarding/CompanyStep";
+import { ShareholdersStep } from "../components/onboarding/ShareholdersStep";
+import { ShareholderGrantsStep } from "../components/onboarding/ShareholderGrantsStep";
 import { signupReducer } from "../reducers/SignupReducer";
 
 const defaultOnboardingState = {

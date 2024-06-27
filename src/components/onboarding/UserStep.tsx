@@ -1,7 +1,5 @@
 import React from "react";
-import {
-  useNavigate,
-} from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import {
   Stack,
   Button,
@@ -11,8 +9,7 @@ import {
   FormHelperText,
 } from "@chakra-ui/react";
 import { useContext } from "react";
-import { OnboardingContext } from "../context/OnboardingContext";
-
+import { OnboardingContext } from "../../context/OnboardingContext";
 
 export function UserStep() {
   const { userName, email, dispatch } = useContext(OnboardingContext);

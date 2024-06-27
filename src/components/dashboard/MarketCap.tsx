@@ -1,6 +1,6 @@
 import React, { useCallback } from "react";
 import { Text, Stack, Button, Input } from "@chakra-ui/react";
-import { CompanyValue, Grant } from "../types";
+import { CompanyValue, Grant } from "../../types";
 import { useMutation, useQueryClient } from "react-query";
 import produce from "immer";
 

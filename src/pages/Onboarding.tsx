@@ -1,11 +1,11 @@
 import React from "react";
 import { Route, Routes, Navigate } from "react-router-dom";
 import { Heading, Stack } from "@chakra-ui/react";
-import { UserStep } from "../components/UserStep";
-import { CompanyStep } from "../components/CompanyStep";
-import { ShareholdersStep } from "../components/ShareholdersStep";
-import { DoneStep } from "../components/DoneStep";
-import { ShareholderGrantsStep } from "../components/ShareholderGrantsStep";
+import { UserStep } from "../components/onboarding/UserStep";
+import { CompanyStep } from "../components/onboarding/CompanyStep";
+import { ShareholdersStep } from "../components/onboarding/ShareholdersStep";
+import { DoneStep } from "../components/onboarding/DoneStep";
+import { ShareholderGrantsStep } from "../components/onboarding/ShareholderGrantsStep";
 import { OnboardingContext } from "../context/OnboardingContext";
 import { signupReducer } from "../reducers/SignupReducer";
 

@@ -1,3 +1,5 @@
+Bugs:
+
 - Upon opening the application and analyzing the console we see one warning to use createRoot because we're on React 18 and one error about the <svg> attribute height expected to be "auto". Changed from "auto" to "100%" to match pattern in Home.tsx svg reference.
 - In App.tsx a ts error is shown "Expression produces a union type that is too complex to represent." This is telling us the structure could be simplified. After investigating further it seemed like noise and needed to make a new setting in settings.json for this project.
 - The README states to use yarn and we have a package-lock, we can get rid of this as to follow the README properly.
@@ -16,3 +18,10 @@
 - Added navigation back to company page if there is no name. Someone would have to manually set the URL to get this behavior but there was a todo.
 - Added a back button in shareholder view as it seemed wrong without it. Also considered a "signout" button but didn't seem necessary.
 - On Dashboard I put submitNewShareholder inside a useCallback as it relies on a state variable. Also added a try/catch and an error thrown if it's a bad mutation. Also did this with submitGrant in Shareholder.tsx
+
+Considerations:
+
+- email format validation - usually done on backend i.e. some sort of regex or library.
+- separate Shareholder and Dashboard components - probably warranted but kept as is.
+- no signout button? Was able to confirm signed in worked with manually deleting session and using tests.
+- Probaby could've cut down on calls when switching between pages. Use of localStorage as caching could've been possible, probabyl overkill for most situations but a heavy trafficked site it could make all the difference.

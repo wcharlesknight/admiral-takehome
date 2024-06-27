@@ -18,8 +18,8 @@ import {
   Select,
 } from "@chakra-ui/react";
 import { useContext } from "react";
-import { Grant } from "../types";
-import { OnboardingContext } from "../context/OnboardingContext";
+import { Grant } from "../../types";
+import { OnboardingContext } from "../../context/OnboardingContext";
 
 export function ShareholderGrantsStep() {
   const { shareholders, grants, dispatch } = useContext(OnboardingContext);

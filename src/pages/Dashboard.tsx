@@ -1,81 +1,25 @@
-import React, { useCallback } from "react";
+import React from "react";
 import { VictoryPie } from "victory";
 import { Link, useParams } from "react-router-dom";
-import { ArrowForwardIcon } from "@chakra-ui/icons";
 import {
-  Text,
   Heading,
   Stack,
   Button,
-  Input,
-  Table,
-  Thead,
-  Tr,
-  Tbody,
-  Td,
-  Modal,
-  useDisclosure,
-  ModalContent,
   Spinner,
   Alert,
   AlertTitle,
   AlertIcon,
-  Select,
-  Box,
 } from "@chakra-ui/react";
-import {
-  CompanyValue,
-  Grant,
-  Query,
-  Shareholder,
-  ShareholderGroup,
-} from "../types";
-import { useMutation, useQuery, useQueryClient } from "react-query";
-import produce from "immer";
-import { MarketCap } from "../components/MarketCap";
+import { CompanyValue, Grant, Query, Shareholder } from "../types";
+import { useQuery } from "react-query";
+import { MarketCap } from "../components/dashboard/MarketCap";
+import { ShareholderTable } from "../components/dashboard/ShareholderTable";
 
 export function Dashboard() {
-  const { isOpen, onOpen, onClose } = useDisclosure();
-  const queryClient = useQueryClient();
-  const [newShareholder, setNewShareholder] = React.useState<
-    Omit<Shareholder, "id" | "grants">
-  >({ name: "", group: "employee" });
-
   const { mode, view } = useParams();
-
-  const shareholderMutation = useMutation<
-    Shareholder,
-    unknown,
-    Omit<Shareholder, "id" | "grants">
-  >(
-    (shareholder) =>
-      fetch("/shareholder/new", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(shareholder),
-      }).then((res) => {
-        if (res.ok) {
-          return res.json();
-        } else {
-          throw new Error("Failed to create shareholder");
-        }
-      }),
-    {
-      onSuccess: (data) => {
-        queryClient.setQueryData<Query<Shareholder> | undefined>(
-          "shareholders",
-          (s) => {
-            if (s) {
-              return produce(s, (draft) => {
-                draft[data.id] = data;
-              });
-            }
-          }
-        );
-      },
-    }
-  );
   // These are caught down below if there is an error
+  const SHAREHOLDER_GROUPS = ["investor", "founder", "employee"];
+  const SHARE_TYPES = ["common", "preferred"];
   const grant = useQuery<Query<Grant>, string>("grants", () =>
     fetch("/grants").then((e) => e.json())
   );
@@ -84,19 +28,6 @@ export function Dashboard() {
   );
   const value = useQuery<CompanyValue>("value", () =>
     fetch("/value").then((e) => e.json())
-  );
-
-  const submitNewShareholder = useCallback(
-    async (e: React.FormEvent) => {
-      e.preventDefault();
-      try {
-        await shareholderMutation.mutateAsync(newShareholder);
-      } catch (error) {
-        console.error(error);
-      }
-      onClose();
-    },
-    [newShareholder, shareholderMutation, onClose]
   );
 
   if (grant.status === "error") {
@@ -154,7 +85,7 @@ export function Dashboard() {
         }))
         .filter((e) => e.y > 0);
     } else if (mode === "group") {
-      return ["investor", "founder", "employee"].map((group) => ({
+      return SHAREHOLDER_GROUPS.map((group) => ({
         x: group,
         y: Object.values(shareholder?.data ?? {})
           .filter((s) => s.group === group)
@@ -169,8 +100,8 @@ export function Dashboard() {
             return acc;
           }, 0),
       }));
-    } else {
-      return ["common", "preferred"].map((type) => ({
+    } else if (mode === "sharetype") {
+      return SHARE_TYPES.map((type) => ({
         x: type,
         y: Object.values(shareholder?.data ?? {})
           .flatMap((s) => s.grants)
@@ -261,104 +192,10 @@ export function Dashboard() {
           labels={({ datum }) => (datum.y ? `${datum.x}` : "")}
         />
       )}
-      <Stack>
-        <Box justifyContent="center">
-          <Heading marginLeft={2}>Shareholders</Heading>
-          <Table>
-            <Thead>
-              <Tr>
-                <Td>Name</Td>
-                <Td>Group</Td>
-                <Td>Common Grants</Td>
-                <Td>Common</Td>
-                <Td>Preferred Grants</Td>
-                <Td>Preferred</Td>
-              </Tr>
-            </Thead>
-            <Tbody>
-              {Object.values(shareholder.data).map((s) => (
-                <Tr key={s.id}>
-                  <Td>
-                    <Link to={`/shareholder/${s.id}`}>
-                      <Stack direction="row" alignItems="center">
-                        <Text color="teal.600">{s.name}</Text>
-                        <ArrowForwardIcon color="teal.600" />
-                      </Stack>
-                    </Link>
-                  </Td>
-                  <Td data-testid={`shareholder-${s.name}-group`}>{s.group}</Td>
-                  <Td data-testid={`shareholder-${s.name}-common-grants`}>
-                    {
-                      s.grants.filter((g) => grant.data[g].type === "common")
-                        .length
-                    }
-                  </Td>
-                  <Td data-testid={`shareholder-${s.name}-common`}>
-                    {s.grants
-                      .filter((g) => grant.data[g].type === "common")
-                      .reduce(
-                        (acc, grantID) => acc + grant.data[grantID].amount,
-                        0
-                      )}
-                  </Td>
-                  <Td data-testid={`shareholder-${s.name}-preferred-grants`}>
-                    {
-                      s.grants.filter((g) => grant.data[g].type === "preferred")
-                        .length
-                    }
-                  </Td>
-                  <Td data-testid={`shareholder-${s.name}-preferred`}>
-                    {s.grants
-                      .filter((g) => grant.data[g].type === "preferred")
-                      .reduce(
-                        (acc, grantID) => acc + grant.data[grantID].amount,
-                        0
-                      )}
-                  </Td>
-                </Tr>
-              ))}
-            </Tbody>
-          </Table>
-        </Box>
-        <Button justifyContent="center" alignContent="center" onClick={onOpen}>
-          Add Shareholder
-        </Button>
-      </Stack>
-      <Modal isOpen={isOpen} onClose={onClose}>
-        <ModalContent>
-          <Stack p="10" as="form" onSubmit={submitNewShareholder}>
-            <Input
-              data-testid="new-shareholder-name"
-              value={newShareholder.name}
-              placeholder="Shareholder Name"
-              onChange={(e) =>
-                setNewShareholder((s) => ({ ...s, name: e.target.value }))
-              }
-            />
-            <Select
-              placeholder="Type of shareholder"
-              value={newShareholder.group}
-              onChange={(e) =>
-                setNewShareholder((s) => ({
-                  ...s,
-                  group: e.target.value as ShareholderGroup,
-                }))
-              }
-            >
-              <option value="investor">Investor</option>
-              <option value="founder">Founder</option>
-              <option value="employee">Employee</option>
-            </Select>
-            <Button
-              data-testid="save-new-shareholder"
-              type="submit"
-              colorScheme="teal"
-            >
-              Save
-            </Button>
-          </Stack>
-        </ModalContent>
-      </Modal>
+      <ShareholderTable
+        grantData={grant.data}
+        shareholderData={shareholder.data}
+      />
     </Stack>
   );
 }

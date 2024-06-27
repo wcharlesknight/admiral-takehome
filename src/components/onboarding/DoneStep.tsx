@@ -2,10 +2,10 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import { Text, Stack, Spinner } from "@chakra-ui/react";
 import { useContext } from "react";
-import { Company, Grant, Shareholder, User } from "../types";
+import { Company, Grant, Shareholder, User } from "../../types";
 import { useMutation, useQueryClient } from "react-query";
-import { OnboardingContext } from "../context/OnboardingContext";
-import { AuthContext } from "../context/AuthContext";
+import { OnboardingContext } from "../../context/OnboardingContext";
+import { AuthContext } from "../../context/AuthContext";
 
 export function DoneStep() {
   const { authorize } = useContext(AuthContext);

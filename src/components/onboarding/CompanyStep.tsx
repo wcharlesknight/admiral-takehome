@@ -2,7 +2,7 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import { Stack, Button, Input, FormControl, FormLabel } from "@chakra-ui/react";
 import { useContext } from "react";
-import { OnboardingContext } from "../context/OnboardingContext";
+import { OnboardingContext } from "../../context/OnboardingContext";
 
 export function CompanyStep() {
   const { companyName, dispatch } = useContext(OnboardingContext);

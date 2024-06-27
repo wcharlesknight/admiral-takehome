@@ -13,8 +13,8 @@ import {
   Badge,
 } from "@chakra-ui/react";
 import { useContext } from "react";
-import { Shareholder, ShareholderGroup } from "../types";
-import { OnboardingContext } from "../context/OnboardingContext";
+import { Shareholder, ShareholderGroup } from "../../types";
+import { OnboardingContext } from "../../context/OnboardingContext";
 
 export function ShareholdersStep() {
   const { isOpen, onOpen, onClose } = useDisclosure();
